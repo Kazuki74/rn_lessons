@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
-import { Image, StyleSheet, Text, View, FlatList, Dimensions } from 'react-native';
+import { Image,StyleSheet, Text, View, FlatList, Dimensions, ActivityIndicator } from 'react-native';
 
 export default class App extends React.Component {
   constructor() {
     super()
     this.state = {
       // 記事データを入れるための配列
-      threads: []
+      threads: [],
+      isLoading: true
     }
   }
   componentDidMount() {
@@ -18,30 +19,32 @@ export default class App extends React.Component {
           i.key = i.data.url
           return i
         })
-        this.setState({threads})
+        this.setState({threads: threads, isLoading: false})
       })
       .catch((error) => {
         console.log(error);
       })
   }
   render() {
-    const { threads } = this.state
+    const { threads, isLoading } = this.state
     // Dimensionsから画面幅を取得
     const { width } = Dimensions.get('window')
     return (
       <React.Fragment>
         <View style={styles.list}>
-          <FlatList data={ threads } renderItem={ ({item}) => {
-            return (
-              <View style={styles.items}>
-                <Image style={styles.image} source={{uri: item.data.thumbnail}}/>
-                <View style={{ width: width - 50 }}>
-                  <Text>{item.data.title}</Text>
-                  <Text style= {styles.domain}>{item.data.domain}</Text>
+          { isLoading? <ActivityIndicator/> :
+            <FlatList data={ threads } renderItem={ ({item}) => {
+              return (
+                <View style={styles.items}>
+                  <Image style={styles.image} source={{uri: item.data.thumbnail}}/>
+                  <View style={{ width: width - 50 }}>
+                    <Text>{item.data.title}</Text>
+                    <Text style= {styles.domain}>{item.data.domain}</Text>
+                  </View>
                 </View>
-              </View>
-            )
-          }} />
+              )
+            }} />
+          }
         </View>
       </React.Fragment>
     );
