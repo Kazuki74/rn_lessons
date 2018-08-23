@@ -56,6 +56,7 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   list: {
     flex: 1,
+    paddingTop: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
