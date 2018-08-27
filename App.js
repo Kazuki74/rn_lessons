@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Image,StyleSheet, Text, View, FlatList, Dimensions, ActivityIndicator } from 'react-native';
+import { Image, StyleSheet, Text, View, FlatList, Dimensions, ActivityIndicator, Button, Modal } from 'react-native';
 
 export default class App extends React.Component {
   constructor() {
@@ -7,8 +7,15 @@ export default class App extends React.Component {
     this.state = {
       // 記事データを入れるための配列
       threads: [],
-      isLoading: true
+      isLoading: true,
+      isVisible: false,
     }
+  }
+  showModal() {
+    this.setState({isVisible: true})
+  }
+  closeModal() {
+    this.setState({isVisible: false})
   }
   componentDidMount() {
     fetch("https://www.reddit.com/r/newsokur/hot.json")
@@ -31,6 +38,19 @@ export default class App extends React.Component {
     const { width } = Dimensions.get('window')
     return (
       <React.Fragment>
+        <View style={styles.modal}>
+          <Modal
+           visible={this.state.isVisible}
+           transparent={false}
+           animationType={"fade" || "slide"}
+           presentationStyle={'fullScreen' || 'pageSheet' || 'formSheet' || 'overFullscreen'}
+          >
+            <View style={styles.modalButton}>
+              <Button onPress={()=>this.closeModal()} title="close modal"/>
+            </View>
+          </Modal>
+          <Button onPress={()=>this.showModal()} title="show modal"/>
+        </View>
         <View style={styles.list}>
           { isLoading? <ActivityIndicator/> :
             <FlatList data={ threads } renderItem={ ({item}) => {
@@ -73,5 +93,17 @@ const styles = StyleSheet.create({
   domain: {
     color: '#ababab',
     fontSize: 10,
+  },
+  modal: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF'
+  },
+  modalButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF'
   },
 });
