@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Image, StyleSheet, Text, View, FlatList, Dimensions, ActivityIndicator, Button, Modal } from 'react-native';
+import { Image, StyleSheet, Text, View, FlatList, Dimensions, ActivityIndicator, Button, Modal, Alert } from 'react-native';
 
 export default class App extends React.Component {
   constructor() {
@@ -9,6 +9,7 @@ export default class App extends React.Component {
       threads: [],
       isLoading: true,
       isVisible: false,
+      color: '#fff'
     }
   }
   showModal() {
@@ -16,6 +17,27 @@ export default class App extends React.Component {
   }
   closeModal() {
     this.setState({isVisible: false})
+  }
+  showAlert() {
+    Alert.alert(
+      'Alert title',
+      'My Alert Msg',
+      [
+        {
+          text: 'Blue', onPress: () => this.changeBGColor("#00f")
+        },
+        {
+          text: 'Red', onPress: () => this.changeBGColor("#f00")
+        },
+        {
+          text: 'Green', onPress: () => this.changeBGColor("#0f0")
+        }
+      ],
+        { cancelable: false }
+    )
+  }
+  changeBGColor(hex) {
+    this.setState({color: hex})
   }
   componentDidMount() {
     fetch("https://www.reddit.com/r/newsokur/hot.json")
@@ -33,7 +55,7 @@ export default class App extends React.Component {
       })
   }
   render() {
-    const { threads, isLoading } = this.state
+    const { threads, isLoading, color } = this.state
     // Dimensionsから画面幅を取得
     const { width } = Dimensions.get('window')
     return (
@@ -51,13 +73,16 @@ export default class App extends React.Component {
           </Modal>
           <Button onPress={()=>this.showModal()} title="show modal"/>
         </View>
+        <View style={styles.alert}>
+          <Button onPress={()=>this.showAlert()} title={"Show Alert"}/>
+        </View>
         <View style={styles.list}>
           { isLoading? <ActivityIndicator/> :
             <FlatList data={ threads } renderItem={ ({item}) => {
               return (
                 <View style={styles.items}>
                   <Image style={styles.image} source={{uri: item.data.thumbnail}}/>
-                  <View style={{ width: width - 50 }}>
+                  <View style={{ width: width - 50, backgroundColor: color }}>
                     <Text>{item.data.title}</Text>
                     <Text style= {styles.domain}>{item.data.domain}</Text>
                   </View>
@@ -105,5 +130,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF'
+  },
+  alert: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
 });
