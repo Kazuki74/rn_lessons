@@ -7,69 +7,52 @@ export default class App extends React.Component {
     this.state = {
       // 記事データを入れるための配列
       threads: [],
-      refleshing: false
+      refreshing: false
     }
   }
   componentDidMount() {
-    this.fetchThreads()
+    this.refreshList()
   }
-  _fetchThread(item) {
-    return new Promise((resolve, reject)=> {
-      fetch(item.uri)
-      .then((response) => response.json())
-      .then((responseJson) => {
-        let threads = responseJson.data.children.slice(0, 5)
-        threads = threads.map(i => {
-          i.key = i.data.url
-          return i
-        })
-        return resolve({
-          data: threads,
-          title: item.title
-        })
-        .catch((error) => {
-          return reject(error);
-        })
+  refreshList() {
+    this.setState({refreshing: true})
+    fetch("https://www.reddit.com/r/newsokur/hot.json")
+    .then((responce) => responce.json())
+    .then((responseJson) => {
+      let threads = responseJson.data.children
+      threads = threads.map(i => {
+        i.key = i.data.url
+        return i
       })
+      this.setState({threads: threads, refreshing: false})
     })
-  }
-  fetchThreads() {
-    let list = [
-      {
-        uri: "https://www.reddit.com/r/newsokur/hot.json",
-        title: "人気"
-      },
-      {
-        uri: "https://www.reddit.com/r/newsokur/controversial.json",
-        title: "議論中"
-      }
-    ]
-    Promise.all(list.map(i => this._fetchThread(i)))
-    .then(r => {
-      this.setState({threads: r})
-    }).catch(e => {
-      console.warn(e)
+    .catch((error) => {
+      console.error(error);
     })
   }
 
   render() {
-    const { threads, isLoading } = this.state
+    const { threads} = this.state
     // Dimensionsから画面幅を取得
     const { width, height, scale } = Dimensions.get('window')
     return (
       <React.Fragment>
         <View style={styles.container}>
-          <SectionList
+          <FlatList
+            refreshControl={
+              <RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={this.refreshList.bind(this)}
+              />
+            }
+            data={threads}
             renderItem={thread => {
               return (
-                <View style={{flex:1, flexDirection:'row', width:"100%"}}>
-                  <Image style={{width: 50, height: 50}} source={{ uri: thread.item.data.thumbnail}}/>
+                <View style={styles.view}>
+                  <Image style={styles.image}/>
                   <Text style={{width: width - 50}} key={thread.key}>{thread.item.data.title}</Text>
                 </View>
               )
             }}
-            renderSectionHeader={({section}) => <Text> {section.title} </Text>}
-            sections = {threads}
           />
         </View>
       </React.Fragment>
@@ -85,6 +68,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: "#F5FCFF",
-    paddingTop: 20,
-  }
+    paddingTop: 16,
+  },
+  view: {
+    flex: 1,
+    flexDirection: 'row',
+    width: "100%",
+  },
+  image: {
+    width: 50,
+    height: 50,
+  },
 });
