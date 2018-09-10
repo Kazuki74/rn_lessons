@@ -48,7 +48,7 @@ export default class App extends React.Component {
             renderItem={thread => {
               return (
                 <View style={styles.view}>
-                  <Image style={styles.image}/>
+                  <Image style={styles.image} source={{uri: thread.item.data.thumbnail}}/>
                   <Text style={{width: width - 50}} key={thread.key}>{thread.item.data.title}</Text>
                 </View>
               )
