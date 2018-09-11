@@ -1,82 +1,78 @@
 import React, { Component } from 'react';
-import { Image, StyleSheet, Text, View, FlatList, Dimensions, ActivityIndicator, Button, Modal, Alert, SectionList, RefreshControl } from 'react-native';
+import {
+  View,
+  Image,
+  ImageStore,
+  Button,
+  ImageEditor,
+  StyleSheet
+} from 'react-native';
 
 export default class App extends React.Component {
   constructor() {
     super()
     this.state = {
-      // 記事データを入れるための配列
-      threads: [],
-      refreshing: false
+      position: {},
+      uri: ""
     }
   }
-  componentDidMount() {
-    this.refreshList()
-  }
-  refreshList() {
-    this.setState({refreshing: true})
-    fetch("https://www.reddit.com/r/newsokur/hot.json")
-    .then((responce) => responce.json())
-    .then((responseJson) => {
-      let threads = responseJson.data.children
-      threads = threads.map(i => {
-        i.key = i.data.url
-        return i
-      })
-      this.setState({threads: threads, refreshing: false})
-    })
-    .catch((error) => {
-      console.error(error);
+
+  cropImage(uri) {
+    Image.getSize(uri, (width, height) => {
+      let cropData = {
+        offset: {
+          y: height / 3,
+          x: width / 3
+        },
+        size: {
+          height: height / 3,
+          width: width / 3
+        },
+      }
+    ImageEditor.cropImage(
+      uri,
+      cropData,
+      (result) => {
+        ImageStore.hasImageFortag(result, (hasImage) => {
+          if(hasImage > 0){
+            this.setState({uri: result})
+          }
+        },
+        (e) => {
+          console.warn(e)
+        })
+      },
+      (e) => {
+        console.warn(e)
+      }
+      )
     })
   }
 
   render() {
-    const { threads} = this.state
-    // Dimensionsから画面幅を取得
-    const { width, height, scale } = Dimensions.get('window')
+    const { position, uri } = this.state
+    const styles = StyleSheet.create({
+      view: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F5FCFF',
+      },
+      image: {
+        width: 50,
+        height: 50,
+      }
+    })
+
     return (
-      <React.Fragment>
-        <View style={styles.container}>
-          <FlatList
-            refreshControl={
-              <RefreshControl
-              refreshing={this.state.refreshing}
-              onRefresh={this.refreshList.bind(this)}
-              />
-            }
-            data={threads}
-            renderItem={thread => {
-              return (
-                <View style={styles.view}>
-                  <Image style={styles.image} source={{uri: thread.item.data.thumbnail}}/>
-                  <Text style={{width: width - 50}} key={thread.key}>{thread.item.data.title}</Text>
-                </View>
-              )
-            }}
-          />
-        </View>
-      </React.Fragment>
-    );
+      <View style={styles.view}>
+        <Image style={styles.image} source={{uri: 'https://www.pakutaso.com/shared/img/thumb/PAK160428140I9A3615_TP_V.jpg'}} />
+        <Button
+          onPress{() => {this.cropImage('https://www.pakutaso.com/shared/img/thumb/PAK160428140I9A3615_TP_V.jpg')}}
+          title={ "crop a picture" }
+        />
+      </View>
+    )
   }
 }
 
-// -の代わりにキャメルケース
-// 基本の単位はdp
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: "#F5FCFF",
-    paddingTop: 16,
-  },
-  view: {
-    flex: 1,
-    flexDirection: 'row',
-    width: "100%",
-  },
-  image: {
-    width: 50,
-    height: 50,
-  },
-});
